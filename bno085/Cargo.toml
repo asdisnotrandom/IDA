@@ -1,0 +1,25 @@
+[package]
+name = "bno085"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+cortex-m = "0.7.7"
+cortex-m-rt = "0.7.5"
+embassy-executor = { version = "0.10.0", features = ["platform-cortex-m", "executor-thread"] }
+embassy-rp = { version = "0.10.0", features = ["time-driver", "rp235xa", "critical-section-impl"] }
+embassy-time = "0.5.1"
+embassy-usb = "0.6.0"
+embedded-hal-async = "1.0.0"
+libm = "0.2.16"
+log = "0.4.33"
+panic-probe = "1.0.0"
+static_cell = "2.1.1"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+debug = false
+panic = "abort"
+strip = true
