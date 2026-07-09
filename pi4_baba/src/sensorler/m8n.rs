@@ -1,5 +1,5 @@
 use tokio::io::AsyncReadExt;
-use tokio::sync::mpsc;
+use tokio::sync::watch;
 use tokio_serial::SerialPortBuilderExt;
 use crate::sensorler::m8n::DParse::{HFirst, HSec};
 use crate::veri_tipleri::GpsVeri;
@@ -12,7 +12,7 @@ enum DParse
     HSec,
 }
 
-pub async fn gps_task(tx: mpsc::Sender<GpsVeri>)
+pub async fn gps_task(tx: watch::Sender<GpsVeri>)
 {
     let mut usb_port = tokio_serial::new(USB_PORT, 115200).open_native_async().expect("Gps portu acilmadi!");
     let mut buf = [0u8; 1];
@@ -58,7 +58,7 @@ pub async fn gps_task(tx: mpsc::Sender<GpsVeri>)
                                     zaman_ms: u64::from_le_bytes(bucket[22..30].try_into().unwrap()),
 
                                 };
-                                if let Err(e) = tx.send(paket).await
+                                if let Err(e) = tx.send(paket)
                                 {
                                     eprintln!("Gps gonderım hatası: {:?}", e);
                                 }

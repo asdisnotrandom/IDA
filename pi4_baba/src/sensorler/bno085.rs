@@ -1,5 +1,5 @@
 use tokio::io::AsyncReadExt;
-use tokio::sync::mpsc;
+use tokio::sync::watch;
 use tokio_serial::SerialPortBuilderExt;
 use crate::sensorler::bno085::DurumParse::{HeaderF, HeaderS};
 use crate::veri_tipleri::ImuVeri;
@@ -12,7 +12,7 @@ enum DurumParse
     HeaderS,
 }
 
-pub async fn imu_task(tx: mpsc::Sender<ImuVeri>)
+pub async fn imu_task(tx: watch::Sender<ImuVeri>)
 {
     let mut usb_port = tokio_serial::new(USB_PORT, 115200).open_native_async().expect("Imu portu acilmadi!");
     let mut buf = [0u8; 1];
@@ -59,7 +59,7 @@ pub async fn imu_task(tx: mpsc::Sender<ImuVeri>)
                                     az: fill_struct(32),
                                     zaman_ms: u64::from_le_bytes(bucket[36..44].try_into().unwrap()),
                                 };
-                                if let Err(e) = tx.send(paket).await
+                                if let Err(e) = tx.send(paket)
                                 {
                                     eprintln!("Imu gonderım hatası: {:?}", e);
                                 }

@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct MotorVeri
 {
     pub iskeleon: u16,
@@ -20,6 +20,7 @@ pub struct ImuVeri
     pub az: f32,
     pub zaman_ms: u64,
 }
+#[derive(Debug, Clone, Copy, Default)]
 pub struct GpsVeri
 {
     pub algi_boyut: u8,
@@ -32,13 +33,15 @@ pub struct GpsVeri
     pub zaman_ms: u64,
 
 }
-#[derive(Clone,Debug)]
+#[derive(Clone,Debug, Default)]
 pub struct LidarNokta
 {
     pub aci: f32,
     pub mesafe_mm: f32,
     pub kalite: u8
 }
+
+#[derive(Debug, Default)]
 pub struct LidarVeri
 {
     pub noktalar: Vec<LidarNokta>,
