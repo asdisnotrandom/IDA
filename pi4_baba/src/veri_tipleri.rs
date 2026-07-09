@@ -47,3 +47,11 @@ pub struct LidarVeri
     pub noktalar: Vec<LidarNokta>,
     pub zaman_ms: u64,
 }
+
+#[derive(Debug, Default, Clone)]
+pub struct SistemDurumu
+{
+    pub is_arm_aktif: bool,
+    pub is_otonom_aktif: bool,
+    pub is_acildurdurma: bool,
+}
