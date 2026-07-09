@@ -17,6 +17,7 @@ use embassy_stm32::usart::{BufferedInterruptHandler, BufferedUart, Config as UCo
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::signal::Signal;
 use static_cell::StaticCell;
+use embedded_hal_02::Pwm;
 
 bind_interrupts!(struct Irqs
 {
