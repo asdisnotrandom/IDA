@@ -5,6 +5,7 @@ use crate::sensorler::m8n::DParse::{HFirst, HSec};
 use crate::veri_tipleri::GpsVeri;
 
 const USB_PORT: &str = "asdadas";
+const GPS_BAUD_RATE: u32 = 115200;
 
 enum DParse
 {
@@ -14,7 +15,7 @@ enum DParse
 
 pub async fn gps_task(tx: watch::Sender<GpsVeri>)
 {
-    let mut usb_port = tokio_serial::new(USB_PORT, 115200).open_native_async().expect("Gps portu acilmadi!");
+    let mut usb_port = tokio_serial::new(USB_PORT, GPS_BAUD_RATE).open_native_async().expect("Gps portu acilmadi!");
     let mut buf = [0u8; 1];
     let mut bucket = [0u8; 31];
     let mut duruum = DParse::HFirst;
