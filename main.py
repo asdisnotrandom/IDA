@@ -108,8 +108,9 @@ class RFTerminal:
                 elif data == "MAN_START":
                     self.state["mission_active"] = True
                     logging.info("gorev baslatildi - kumanda aktif")
-                    gaz, aci = parse[2].split(",");
-                    self.state["speed"] = gaz;
+                    gaz, aci = parse[2].split(",")
+                    self.state["speed"] = gaz
+                    self.state["aci"]
 
 
                 elif data == "STOP":

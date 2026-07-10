@@ -2,19 +2,24 @@ mod sensorler;
 mod motorlar;
 mod veri_tipleri;
 mod beyin;
+mod telemetri;
 
 use tokio::sync::{mpsc, watch};
 use veri_tipleri::{ImuVeri};
 
 use crate::veri_tipleri::{GpsVeri, LidarVeri, MotorVeri};
 use crate::motorlar::MotorKontrol;
+
+const TEL_BAUD_RATE: u32 = 57600;
+const TEL_PORT_AD: &str = "hoppa";
+
 #[tokio::main]
 async fn main()
 {
+    let (tel_tx, tel_rx) = mpsc::channel(buffer)
     let (imu_tx, imu_rx) = watch::channel(ImuVeri::default());
     let (gps_tx, gps_rx) = watch::channel(GpsVeri::default());
     let (motor_tx, mut motor_rx) = mpsc::channel::<MotorVeri>(100);
-
     tokio::spawn(async move {
         sensorler::m8n::gps_task(gps_tx).await;
     });

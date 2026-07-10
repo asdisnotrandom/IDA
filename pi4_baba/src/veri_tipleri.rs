@@ -1,3 +1,5 @@
+use crate::veri_tipleri::GelenTelemetri::RotaBelirle;
+
 #[derive(Debug, Clone, Default)]
 pub struct MotorVeri
 {
@@ -54,4 +56,79 @@ pub struct SistemDurumu
     pub is_arm_aktif: bool,
     pub is_otonom_aktif: bool,
     pub is_acildurdurma: bool,
+}
+
+#[derive(Default, Debug, Clone, Copy, PartialEq)]
+#[repr(u8)]
+pub enum AracMod {
+    #[default]
+    Manuel = 0,
+
+    Otonom = 1,
+    GorevBekliyor = 2,
+    AcilDurum = 3,
+}
+
+impl AracMod {
+    pub fn from_u8(value: u8) -> Self {
+        match value {
+            1 => AracMod::Otonom,
+            2 => AracMod::GorevBekliyor,
+            3 => AracMod::AcilDurum,
+            _ => AracMod::Manuel,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum GelenTelemetri
+{
+    RotaBelirle(Vec<(f64, f64)>),
+    ModDegistir(AracMod),
+    GoreviBaslat,
+    AcilDurdur,
+    ManuelKontrol(f32,f32),
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct GidenTelemetri {
+    pub arac_enlem: f64,
+    pub arac_boylam: f64,
+    pub yer_hiz: f32,
+    pub setpoint_hiz: f32,
+    pub imu_veri: (f32, f32, f32), 
+    pub setpoint_yaw: f32,
+    pub arac_mod: AracMod,
+    pub motorlar_veri: (u16, u16, u16, u16),
+    pub motorlar_istek: (u16, u16, u16, u16),
+}
+
+pub fn calc_checksum(payload: &str) -> String {
+    let mut sum: u32 = 0;
+    for byte in payload.bytes() {
+        sum += byte as u32;
+    }
+    format!("{:02X}", sum % 256)
+}
+
+impl GidenTelemetri {
+    pub fn to_rf_strings(&self) -> (String, String) {
+        let nav_payload = format!(
+            "NAV:{:.6},{:.6},{:.2},{:.2},{:.1},{:.1},{:.1},{:.1},{}",
+            self.arac_enlem, self.arac_boylam, self.yer_hiz, self.setpoint_hiz,
+            self.imu_veri.0, self.imu_veri.1, self.imu_veri.2, self.setpoint_yaw,
+            self.arac_mod as u8
+        );
+        
+        let mot_payload = format!(
+            "MOT:{},{},{},{},{},{},{},{}",
+            self.motorlar_veri.0, self.motorlar_veri.1, self.motorlar_veri.2, self.motorlar_veri.3,
+            self.motorlar_istek.0, self.motorlar_istek.1, self.motorlar_istek.2, self.motorlar_istek.3
+        );
+
+        (
+            format!("{}*{}\n", nav_payload, calc_checksum(&nav_payload)),
+            format!("{}*{}\n", mot_payload, calc_checksum(&mot_payload))
+        )
+    }
 }
