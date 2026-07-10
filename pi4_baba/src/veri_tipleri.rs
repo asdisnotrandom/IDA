@@ -50,14 +50,6 @@ pub struct LidarVeri
     pub zaman_ms: u64,
 }
 
-#[derive(Debug, Default, Clone)]
-pub struct SistemDurumu
-{
-    pub is_arm_aktif: bool,
-    pub is_otonom_aktif: bool,
-    pub is_acildurdurma: bool,
-}
-
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
 #[repr(u8)]
 pub enum AracMod {
