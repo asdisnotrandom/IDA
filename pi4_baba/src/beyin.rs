@@ -168,6 +168,8 @@ pub async fn nav_task(
     let mut kaba_donus_modu = false;
     let mut guncel_mod = AracMod::Manuel;
     let mut telemetri_sayaci = 0;
+    let mut son_manuel_gaz:f32 = 0.0;
+    let mut son_manuel_aci: f32 = 0.0;
     loop {
         tick.tick().await;
         
@@ -190,6 +192,11 @@ pub async fn nav_task(
                     guncel_mod = istenen_mod;
                     println!("Mod değişimi: {:?}", guncel_mod);
                 }
+                GelenTelemetri::ManuelKontrol(gaz, aci) => {
+                    guncel_mod = AracMod::Manuel;
+                    son_manuel_gaz = gaz;
+                    son_manuel_aci = aci;
+                }
                 GelenTelemetri::RotaBelirle(noktalar) => {
                     nav.set_rota(noktalar);
                     guncel_mod = AracMod::GorevBekliyor;
@@ -205,7 +212,7 @@ pub async fn nav_task(
             nav.guvenli_origin_belirle(&gps);
         } else {
             nav.guncelle_konum(gps.enlem, gps.boylam, imu.yaw as f64);
-            
+            anlik_hedef_aci = imu.yaw as f64;
             if guncel_mod == AracMod::Otonom {
                 if let Some((hedef_x, hedef_y)) = nav.guncel_hedef() {
                     let mesafe = nav.calc_mesafe(hedef_x, hedef_y);
@@ -242,6 +249,25 @@ pub async fn nav_task(
                     guncel_mod = AracMod::GorevBekliyor;
                 }
             }
+            else if guncel_mod == AracMod::Manuel {
+                let motor_gaz = (son_manuel_gaz * 1000.0).clamp(0.0, 1000.0) as u16;
+                let motor_aci: f32 = (son_manuel_aci * 1000.0).clamp(-1000.0, 1000.0);
+                
+                motor_istek.iskelearka = motor_gaz;
+                motor_istek.sancakarka = motor_gaz;
+                
+                if motor_aci > 0.0 {
+                    motor_istek.sancakon = 0;
+                    motor_istek.iskeleon = motor_aci as u16;
+                } else if motor_aci  < 0.0 {
+                    motor_istek.iskeleon = 0;
+                    motor_istek.sancakon = (-motor_aci) as u16;
+                }
+                else {
+                    motor_istek.iskeleon = 0;
+                    motor_istek.sancakon = 0;
+                }
+            }
         }
         let _ = motor_tx.send(motor_istek.clone()).await;
         telemetri_sayaci += 1;
@@ -250,7 +276,11 @@ pub async fn nav_task(
                 arac_enlem: gps.enlem as f64 / 10_000_000.0,
                 arac_boylam: gps.boylam as f64 / 10_000_000.0,
                 yer_hiz: gps.hiz as f32,
-                setpoint_hiz: if guncel_mod == AracMod::Otonom { 2.0 } else { 0.0 },
+                setpoint_hiz: match guncel_mod {
+                    AracMod::Otonom => 2.0,
+                    AracMod::Manuel => son_manuel_gaz.clamp(0.0, 1.0) * 2.0,
+                    _ => 0.0,
+                },
                 imu_veri: (imu.roll, imu.pitch, imu.yaw), 
                 setpoint_yaw: anlik_hedef_aci as f32,
                 arac_mod: guncel_mod,

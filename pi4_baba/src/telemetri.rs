@@ -21,6 +21,17 @@ fn parse_yk_komut(payload: &str) -> Option<GelenTelemetri> {
                 }
                 None
             }
+            "MAN" => {
+                if let Some(arg_str) = args {
+                    let mut vals = arg_str.split(',');
+                    if let (Some(gaz_str), Some(aci_str)) = (vals.next(), vals.next()) {
+                        if let (Ok(gaz), Ok(aci)) = (gaz_str.parse::<f32>(), aci_str.parse::<f32>()) {
+                            return Some(GelenTelemetri::ManuelKontrol(gaz, aci));
+                        }
+                    }
+                }
+                None
+            }
             "ROTA" => {
                 let mut noktalar = Vec::new();
                 if let Some(rota_str) = args {
