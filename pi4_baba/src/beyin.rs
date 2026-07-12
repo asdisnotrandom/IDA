@@ -272,10 +272,12 @@ pub async fn nav_task(
             anlik_hedef_aci = imu.yaw as f64;
             if guncel_mod == AracMod::Otonom
             {
-                if let Some((hedef_x, hedef_y)) = nav.guncel_hedef()
+                if let Some((hedef_lat, hedef_lon)) = nav.guncel_hedef()
                 {
-                    let mesafe = nav.calc_mesafe(hedef_x, hedef_y);
-                    let hedefe_aci = nav.calc_hedefeaci(hedef_x, hedef_y);
+                    let hedefy_metre = (hedef_lat - nav.origin_enlem) * 111_320.0;
+                    let hedefx_metre = (hedef_lon - nav.origin_boylam) * 111_320.0 * nav.cos_enlem;
+                    let mesafe = nav.calc_mesafe(hedefx_metre, hedefy_metre);
+                    let hedefe_aci = nav.calc_hedefeaci(hedefx_metre, hedefy_metre);
                     let hata = nav.bakisyonu_hata(hedefe_aci);
                     anlik_hedef_aci = hedefe_aci;
                     if mesafe < HEDEF_TOLERANS
