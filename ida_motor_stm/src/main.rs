@@ -88,7 +88,7 @@ async fn main(spawner: Spawner)
     let ch2_pin = PwmPin::new(p.PA1, PushPull);
     let ch3_pin = PwmPin::new(p.PA2, PushPull);
     let ch4_pin = PwmPin::new(p.PA3, PushPull);
-
+    info!("Pwm aciliyor.");
     let mut pwm = embassy_stm32::timer::simple_pwm::SimplePwm::new(
         p.TIM2,
         Some(ch1_pin),
@@ -102,12 +102,14 @@ async fn main(spawner: Spawner)
     pwm.enable(Channel::Ch2);
     pwm.enable(Channel::Ch3);
     pwm.enable(Channel::Ch4);
+    info!("pwm aktif ediliyor");
     let max_duty_val: u16 = pwm.max_duty_cycle() as u16;
     let kanallar = pwm.split();
     let mut iskeleon = MotorData::new(kanallar.ch1, max_duty_val);
     let mut iskelearka = MotorData::new(kanallar.ch2, max_duty_val);
     let mut sancakon = MotorData::new(kanallar.ch3, max_duty_val);
     let mut sancakarka = MotorData::new(kanallar.ch4, max_duty_val);
+    info!("kanallar acildi");
     spawner.spawn(uart_task(buart).unwrap());
     let mut aktif_pwms = [0u16; 4];
     let _ = iskeleon.esc_baslat();
@@ -115,6 +117,7 @@ async fn main(spawner: Spawner)
     let _ = sancakon.esc_baslat();
     let _ = sancakarka.esc_baslat();
     embassy_time::Timer::after_secs(2).await; // motorların çalışması kaç saniye ya da milisaniyeyse düşür. 
+    info!("ARM GELMIS OLMALI");
     loop {
         match with_timeout(Duration::from_millis(500), PWM_VALUES.wait()).await {
         Ok(yeni_pwms) => {
