@@ -10,8 +10,8 @@ use crate::veri_tipleri::{GpsVeri, LidarVeri, MotorVeri, GelenTelemetri, GidenTe
 use crate::motorlar::MotorKontrol;
 
 const TEL_BAUD_RATE: u32 = 57600;
-const TEL_PORT_AD: &str = "hoppa";
-const MOTOR_PORT: &str = "bobba";
+const TEL_PORT_AD: &str = "/dev/pts/2";
+const MOTOR_PORT: &str = "/dev/pts/4";
 
 #[tokio::main]
 async fn main() {

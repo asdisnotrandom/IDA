@@ -49,6 +49,7 @@ async fn gps_task(mut tx: BufferedUartTx, rx: BufferedUartRx, mut usb_tx: CdcAcm
                 bucket[20..24].copy_from_slice(&data.yonelim.to_le_bytes());
                 let zaman_ms: u64 = embassy_time::Instant::now().as_millis() as u64;
                 bucket[24..32].copy_from_slice(&zaman_ms.to_le_bytes());
+                log::info!("GPS => BOYUT {} | UYDU {} | ENLEM {} | BOYLAM {} | HIZ {} mm/s | YON {}", data.algi_boyut, data.uydu_sayi, data.enlem, data.boylam, data.hiz, data.yonelim);
                 let mut calc_checksum = 0u8;
                 for i in 2..32 {
                     calc_checksum ^= bucket[i];

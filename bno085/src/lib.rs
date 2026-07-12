@@ -41,6 +41,7 @@ where
     }
     pub async fn active_fut(&mut self, fut_id: u8, timehz: u32) -> Result<(), BnoError<I2cE>>
     {
+
         let mut send_pack = [0u8; 21];
         send_pack[0] = 21;
         send_pack[1] = 0;

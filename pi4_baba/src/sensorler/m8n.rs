@@ -4,7 +4,7 @@ use tokio_serial::SerialPortBuilderExt;
 use crate::sensorler::m8n::DParse::{HFirst, HSec};
 use crate::veri_tipleri::GpsVeri;
 
-const USB_PORT: &str = "asdadas";
+const USB_PORT: &str = "/dev/pts/8";
 const GPS_BAUD_RATE: u32 = 115200;
 
 enum DParse

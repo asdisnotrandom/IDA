@@ -88,7 +88,7 @@ async fn imu_task(i2c_bus: I2c<'static, embassy_rp::peripherals::I2C0, Async>, h
                 if let Some((r,i,j,k)) = data.quat
                 {
                     let (roll,pitch,yaw) = quat_to_euler(r, i, j, k);
-                    last_quat = quat_to_euler(r, i, j, k);
+                    last_quat = (roll, pitch, yaw);
                     log::info!("Quaternion -> Roll: {:>6.1} | Pitch: {:>6.1} | Yaw: {:>6.1}", roll,pitch,yaw);
                 }
                 if let Some((gx,gy,gz)) = data.gyro

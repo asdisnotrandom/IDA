@@ -4,7 +4,7 @@ use tokio_serial::SerialPortBuilderExt;
 use crate::sensorler::bno085::DurumParse::{HeaderF, HeaderS};
 use crate::veri_tipleri::ImuVeri;
 
-const USB_PORT: &str = "asdas";
+const USB_PORT: &str = "/dev/pts/6";
 
 enum DurumParse
 {
