@@ -17,7 +17,6 @@ use embassy_stm32::usart::{BufferedInterruptHandler, BufferedUart, Config as UCo
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::signal::Signal;
 use static_cell::StaticCell;
-use embedded_hal_02::Pwm;
 use embassy_time::{Duration, with_timeout};
 
 bind_interrupts!(struct Irqs
@@ -98,13 +97,13 @@ async fn main(spawner: Spawner)
         embassy_stm32::time::hz(50),
         Default::default(),
     );
-    pwm.enable(Channel::Ch1);
-    pwm.enable(Channel::Ch2);
-    pwm.enable(Channel::Ch3);
-    pwm.enable(Channel::Ch4);
     info!("pwm aktif ediliyor");
     let max_duty_val: u16 = pwm.max_duty_cycle() as u16;
-    let kanallar = pwm.split();
+    let mut kanallar = pwm.split();
+    kanallar.ch1.enable();
+    kanallar.ch2.enable();
+    kanallar.ch3.enable();
+    kanallar.ch4.enable();
     let mut iskeleon = MotorData::new(kanallar.ch1, max_duty_val);
     let mut iskelearka = MotorData::new(kanallar.ch2, max_duty_val);
     let mut sancakon = MotorData::new(kanallar.ch3, max_duty_val);
