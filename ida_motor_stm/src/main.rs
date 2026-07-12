@@ -18,6 +18,7 @@ use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 use embassy_sync::signal::Signal;
 use static_cell::StaticCell;
 use embedded_hal_02::Pwm;
+use embassy_time::{Duration, with_timeout};
 
 bind_interrupts!(struct Irqs
 {
@@ -115,14 +116,18 @@ async fn main(spawner: Spawner)
     let _ = sancakarka.esc_baslat();
     embassy_time::Timer::after_secs(2).await; // motorların çalışması kaç saniye ya da milisaniyeyse düşür. 
     loop {
-        if PWM_VALUES.signaled()
-        {
-            aktif_pwms = PWM_VALUES.wait().await;
+        match with_timeout(Duration::from_millis(500), PWM_VALUES.wait()).await {
+        Ok(yeni_pwms) => {
+            aktif_pwms = yeni_pwms;
         }
+        Err(_) => {
+            aktif_pwms = [0, 0, 0, 0];
+            warn!("UART Baglantisi Koptu! Motorlar durduruluyor.");
+        }
+    }
         let _ = iskeleon.set_speed(aktif_pwms[0]);
         let _ = iskelearka.set_speed(aktif_pwms[1]);
         let _ = sancakon.set_speed(aktif_pwms[2]);
         let _ = sancakarka.set_speed(aktif_pwms[3]);
-        embassy_time::Timer::after_millis(20).await;
     }
 }
