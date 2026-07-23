@@ -358,7 +358,7 @@ pub async fn gps_task(port_adi: String, baud_rate: u32, tx: watch::Sender<GpsVer
             };
 
             let mut reader = BufReader::new(usb_port);
-            let mut satir = String::with_capacity(160);
+            let mut buffer = Vec::with_capacity(160);
             let mut durum = NmeaDurum::default();
             let ilk_veri_son_an = Instant::now() + ILK_NMEA_TIMEOUT;
             let mut gecerli_nmea_goruldu = false;
@@ -367,7 +367,7 @@ pub async fn gps_task(port_adi: String, baud_rate: u32, tx: watch::Sender<GpsVer
             let mut yayin_sayaci: u64 = 0;
 
             'baglanti: loop {
-                satir.clear();
+                buffer.clear();
 
                 let okuma_timeout = if gecerli_nmea_goruldu {
                     NMEA_SESSIZ_TIMEOUT
@@ -383,7 +383,7 @@ pub async fn gps_task(port_adi: String, baud_rate: u32, tx: watch::Sender<GpsVer
                     kalan.min(Duration::from_secs(1))
                 };
 
-                match timeout(okuma_timeout, reader.read_line(&mut satir)).await {
+                match timeout(okuma_timeout, reader.read_until(b'\n', &mut buffer)).await {
                     Ok(Ok(0)) => {
                         eprintln!("GPS USB bağlantısı kapandı: {}", port_adi);
                         break 'baglanti;
@@ -402,6 +402,8 @@ pub async fn gps_task(port_adi: String, baud_rate: u32, tx: watch::Sender<GpsVer
                     }
                     Err(_) => continue,
                 }
+
+                let satir = String::from_utf8_lossy(&buffer);
 
                 let sonuc = nmea_isle(&satir, &mut durum);
                 match sonuc {
@@ -425,7 +427,8 @@ pub async fn gps_task(port_adi: String, baud_rate: u32, tx: watch::Sender<GpsVer
                             baglanti_kuruldu = true;
                             tercih_edilen_baud = aktif_baud;
                         }
-                        gecerli_cumle = gecerli_cumle.wrapping_add(1);
+                        gecersiz_cumle = 0; // Geçerli cümle aldıkça hata sayacını sıfırlamak gürültüyü yönetmeyi kolaylaştırır
+                        gecerli_cumle = gecersiz_cumle.wrapping_add(1); // (Mevcut kodundaki wrapping_add yapısı)
                     }
                 }
 
