@@ -9,9 +9,10 @@ use veri_tipleri::ImuVeri;
 use crate::veri_tipleri::{GpsVeri, LidarVeri, MotorVeri, GelenTelemetri, GidenTelemetri};
 use crate::motorlar::MotorKontrol;
 
+const GPSPORT: &str = "/dev/gps";
 const TEL_BAUD_RATE: u32 = 57600;
-const TEL_PORT_AD: &str = "/dev/pts/2";
-const MOTOR_PORT: &str = "/dev/pts/4";
+const TEL_PORT_AD: &str = "/dev/telemetri";
+const MOTOR_PORT: &str = "/dev/ttyUSB2";
 
 #[tokio::main]
 async fn main() {
@@ -25,7 +26,7 @@ async fn main() {
     {
         let gps_tx = gps_tx.clone();
         let gps_handle = tokio::spawn(async move {
-            sensorler::m8n::gps_task(gps_tx).await;
+            sensorler::m8n::gps_task(GPSPORT.to_string(), 9600, gps_tx).await;
         });
     }
     {

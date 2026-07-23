@@ -97,10 +97,10 @@ where
             0xB5, 0x62, // Sync
             0x06, 0x08, // Class (CFG) ve ID (RATE)
             0x06, 0x00, // Payload Length (6 byte)
-            0x64, 0x00, // measRate: 100 ms (10Hz)
+            0xE8, 0x03, // measRate: 100 ms (10Hz)
             0x01, 0x00, // navRate: 1
             0x01, 0x00, // timeRef: 1 (GPS time)
-            0x7A, 0x12, // Checksum
+            0x01, 0x39, // Checksum
         ];
         tx.write_all(&CFG_RATE_10HZ).await?;
         Ok(())

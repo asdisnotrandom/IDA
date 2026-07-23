@@ -26,6 +26,7 @@ async fn usb_task(mut dev: UsbDevice<'static, Driver<'static, USB>>)
 #[embassy_executor::task]
 async fn gps_task(mut tx: BufferedUartTx, rx: BufferedUartRx, mut usb_tx: CdcAcmClass<'static, Driver<'static, USB>>)
 {
+    embassy_time::Timer::after_secs(3).await;
     let mut sablon = UbloxSablon::new(rx);
     if let Err(_) = UbloxSablon::<BufferedUartRx>::aktif_et_nav_pvt(&mut tx).await
     {
@@ -63,6 +64,7 @@ async fn gps_task(mut tx: BufferedUartTx, rx: BufferedUartRx, mut usb_tx: CdcAcm
             Err(e) =>
             {
                 log::error!("Okuma hatasi {:?}", e);
+                embassy_time::Timer::after_millis(50).await;
             }
         }
     }
@@ -74,11 +76,13 @@ async fn main(spawner: Spawner)
     let p = embassy_rp::init(Default::default());
     //UART BABA ALANI
     let (tx_pin, rx_pin, uart) = (p.PIN_0, p.PIN_1, p.UART0);
-    static TX_BUF: StaticCell<[u8; 100]> = StaticCell::new();
-    let tx_buf = &mut TX_BUF.init([0; 100])[..];
-    static RX_BUF: StaticCell<[u8; 100]> = StaticCell::new();
-    let rx_buf = &mut RX_BUF.init([0; 100])[..];
-    let uart = BufferedUart::new(uart, tx_pin, rx_pin, Irqs, tx_buf, rx_buf, UConfig::default());    
+    static TX_BUF: StaticCell<[u8; 1024]> = StaticCell::new();
+    let tx_buf = &mut TX_BUF.init([0; 1024])[..];
+    static RX_BUF: StaticCell<[u8; 1024]> = StaticCell::new();
+    let rx_buf = &mut RX_BUF.init([0; 1024])[..];
+    let mut u_conf = UConfig::default();
+    u_conf.baudrate = 9600;
+    let uart = BufferedUart::new(uart, tx_pin, rx_pin, Irqs, tx_buf, rx_buf, u_conf);    
     let (tx, rx) = uart.split();
     //USB BABA ALANI
     let usb_driver = Driver::new(p.USB, Irqs);
