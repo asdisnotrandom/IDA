@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YKI - Yer Kontrol İstasyonu</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="/static/style.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <header>
+        <div class="header-left">
+            <span class="header-icon">🛰️</span>
+            <h1>YER KONTROL İSTASYONU</h1>
+        </div>
+        <div class="header-right">
+            <div class="status-indicator" id="statusIndicator">
+                <span class="status-dot disconnected"></span>
+                <span id="statusText">Bağlı Değil</span>
+            </div>
+            <div class="packet-info" id="packetInfo">Son paket: ---</div>
+        </div>
+    </header>
+
+    <main>
+        <section class="map-section">
+            <div id="map"></div>
+        </section>
+
+        <section class="side-panel">
+            <div class="panel telemetry-panel">
+                <h3>TELEMETRİ</h3>
+                <table>
+                    <tr>
+                        <td class="label">Enlem</td>
+                        <td class="value" id="navLat">---</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Boylam</td>
+                        <td class="value" id="navLon">---</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Hız</td>
+                        <td class="value" id="navSpeed">---</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Hedef Hız</td>
+                        <td class="value" id="navTargetSpeed">---</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Roll</td>
+                        <td class="value" id="navRoll">---</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Pitch</td>
+                        <td class="value" id="navPitch">---</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Yaw</td>
+                        <td class="value" id="navYaw">---</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Hedef Yaw</td>
+                        <td class="value" id="navTargetYaw">---</td>
+                    </tr>
+                    <tr>
+                        <td class="label">Mod</td>
+                        <td class="value" id="navMode">---</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="panel motor-panel">
+                <h3>MOTORLAR</h3>
+                <div class="motor-bars">
+                    <div class="motor-row">
+                        <span class="motor-label">İO</span>
+                        <div class="motor-bar-container">
+                            <div class="motor-bar actual" id="motorBarIO" style="width:0%"></div>
+                            <div class="motor-bar target" id="motorBarTargetIO" style="width:0%"></div>
+                        </div>
+                        <span class="motor-value" id="motorValIO">0/0</span>
+                    </div>
+                    <div class="motor-row">
+                        <span class="motor-label">İA</span>
+                        <div class="motor-bar-container">
+                            <div class="motor-bar actual" id="motorBarIA" style="width:0%"></div>
+                            <div class="motor-bar target" id="motorBarTargetIA" style="width:0%"></div>
+                        </div>
+                        <span class="motor-value" id="motorValIA">0/0</span>
+                    </div>
+                    <div class="motor-row">
+                        <span class="motor-label">SO</span>
+                        <div class="motor-bar-container">
+                            <div class="motor-bar actual" id="motorBarSO" style="width:0%"></div>
+                            <div class="motor-bar target" id="motorBarTargetSO" style="width:0%"></div>
+                        </div>
+                        <span class="motor-value" id="motorValSO">0/0</span>
+                    </div>
+                    <div class="motor-row">
+                        <span class="motor-label">SA</span>
+                        <div class="motor-bar-container">
+                            <div class="motor-bar actual" id="motorBarSA" style="width:0%"></div>
+                            <div class="motor-bar target" id="motorBarTargetSA" style="width:0%"></div>
+                        </div>
+                        <span class="motor-value" id="motorValSA">0/0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel control-panel">
+                <h3>KONTROL</h3>
+                <div class="mode-buttons">
+                    <button class="mode-btn" data-mode="0" onclick="setMode(0)">Manuel</button>
+                    <button class="mode-btn" data-mode="1" onclick="setMode(1)">Otonom</button>
+                    <button class="mode-btn" data-mode="2" onclick="setMode(2)">Bekliyor</button>
+                    <button class="mode-btn danger" data-mode="3" onclick="setMode(3)">Acil</button>
+                </div>
+                <div class="action-buttons">
+                    <button class="action-btn start" onclick="sendCommand('START')">▶ BAŞLAT</button>
+                    <button class="action-btn stop" onclick="sendCommand('STOP')">⏹ DURDUR</button>
+                </div>
+                <div class="manual-controls">
+                    <div class="slider-row">
+                        <span class="slider-label">Gaz</span>
+                        <input type="range" id="throttleSlider" min="0" max="1" step="0.01" value="0"
+                               oninput="onManualChange()">
+                        <span class="slider-value" id="throttleValue">0.00</span>
+                    </div>
+                    <div class="slider-row">
+                        <span class="slider-label">Açı</span>
+                        <input type="range" id="steeringSlider" min="-90" max="90" step="0.5" value="0"
+                               oninput="onManualChange()">
+                        <span class="slider-value" id="steeringValue">0.0°</span>
+                    </div>
+                    <button class="action-btn send" onclick="sendManual()">MANUEL GÖNDER</button>
+                </div>
+                <div class="waypoint-controls">
+                    <div class="wp-row">
+                        <span class="slider-label">Rota:</span>
+                        <button class="wp-btn" onclick="clearWaypoints()">Temizle</button>
+                        <button class="wp-btn primary" onclick="sendWaypoints()">Gönder</button>
+                    </div>
+                    <div id="waypointList" class="waypoint-list"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="console-header" onclick="toggleConsole()">
+            <span>KONSOL</span>
+            <span id="consoleToggle">▼</span>
+        </div>
+        <div id="consoleLog" class="console-log"></div>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
