@@ -339,7 +339,7 @@ pub async fn nav_task(
             {
                 arac_enlem: gps.enlem as f64 / 10_000_000.0,
                 arac_boylam: gps.boylam as f64 / 10_000_000.0,
-                yer_hiz: gps.hiz as f32,
+                yer_hiz: gps.hiz as f32 / 1000.0,
                 setpoint_hiz: match guncel_mod
                 {
                     AracMod::Otonom => 2.0,
