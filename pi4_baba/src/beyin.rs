@@ -243,7 +243,7 @@ pub async fn nav_task(
         if guncel_mod == AracMod::Manuel
         {
             let motor_gaz = (son_manuel_gaz * 1000.0).clamp(0.0, 1000.0) as u16;
-            let motor_aci: f32 = (son_manuel_aci * 1000.0).clamp(-1000.0, 1000.0);
+            let motor_aci: f32 = (son_manuel_aci).clamp(-1000.0, 1000.0);
             motor_istek.iskelearka = motor_gaz;
             motor_istek.sancakarka = motor_gaz;
             if motor_aci > 0.0
