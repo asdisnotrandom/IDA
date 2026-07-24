@@ -302,14 +302,14 @@ function onManualChange() {
     const throttle = parseFloat(document.getElementById("throttleSlider").value);
     const steering = parseFloat(document.getElementById("steeringSlider").value);
     document.getElementById("throttleValue").textContent = throttle.toFixed(2);
-    document.getElementById("steeringValue").textContent = steering.toFixed(1) + "\u00b0";
+    document.getElementById("steeringValue").textContent = steering.toFixed(1);
 }
 
 function sendManual() {
     const throttle = parseFloat(document.getElementById("throttleSlider").value);
     const steering = parseFloat(document.getElementById("steeringSlider").value);
     sendWS({ cmd: "MAN", throttle: throttle, steering: steering });
-    addLog(`Manuel kontrol: gaz=${throttle.toFixed(2)}, a\u00e7\u0131=${steering.toFixed(1)}\u00b0`, "tx");
+    addLog(`Manuel kontrol: gaz=${throttle.toFixed(2)}, a\u00e7\u0131=${steering.toFixed(1)}`, "tx");
 }
 
 // ========== Gamepad (Oyun Kolu) ==========
@@ -359,18 +359,18 @@ function gamepadLoop() {
             let steering = 0;
             if (Math.abs(rawRightX) > GAMEPAD_DEADZONE) {
                 const sign = rawRightX > 0 ? 1 : -1;
-                steering = sign * ((Math.abs(rawRightX) - GAMEPAD_DEADZONE) / (1 - GAMEPAD_DEADZONE)) * 90;
+                steering = sign * ((Math.abs(rawRightX) - GAMEPAD_DEADZONE) / (1 - GAMEPAD_DEADZONE)) * 1000;
             }
 
             document.getElementById("throttleSlider").value = throttle;
             document.getElementById("throttleValue").textContent = throttle.toFixed(2);
             document.getElementById("steeringSlider").value = steering;
-            document.getElementById("steeringValue").textContent = steering.toFixed(1) + "\u00b0";
+            document.getElementById("steeringValue").textContent = steering.toFixed(0);
 
             const mode = state.nav ? state.nav.mode : null;
             if (mode === 0) {
                 if (Math.abs(throttle - state.gamepad.lastThrottle) > 0.01 ||
-                    Math.abs(steering - state.gamepad.lastSteering) > 0.5) {
+                    Math.abs(steering - state.gamepad.lastSteering) > 5) {
                     sendWS({ cmd: "MAN", throttle: throttle, steering: steering });
                     state.gamepad.lastThrottle = throttle;
                     state.gamepad.lastSteering = steering;
