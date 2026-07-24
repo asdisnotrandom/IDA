@@ -7,6 +7,12 @@ const state = {
     reconnectTimer: null,
     waypoints: [],
     mapInitialized: false,
+    gamepad: {
+        connected: false,
+        index: null,
+        lastThrottle: -1,
+        lastSteering: -1000,
+    },
 };
 
 const MODE_NAMES = { 0: "Manuel", 1: "Otonom", 2: "G\u00f6rev Bekliyor", 3: "Acil Durum" };
@@ -306,6 +312,75 @@ function sendManual() {
     addLog(`Manuel kontrol: gaz=${throttle.toFixed(2)}, a\u00e7\u0131=${steering.toFixed(1)}\u00b0`, "tx");
 }
 
+// ========== Gamepad (Oyun Kolu) ==========
+const GAMEPAD_DEADZONE = 0.15;
+
+function updateGamepadUI(connected) {
+    const dot = document.getElementById("gamepadDot");
+    const text = document.getElementById("gamepadStatus");
+    if (dot && text) {
+        dot.className = "gamepad-dot " + (connected ? "connected" : "disconnected");
+        text.textContent = connected ? "Kumanda: Bağlı" : "Kumanda: Bağlı Değil";
+    }
+}
+
+function handleGamepadConnected(e) {
+    state.gamepad.index = e.gamepad.index;
+    state.gamepad.connected = true;
+    updateGamepadUI(true);
+    addLog("Oyun kolu bağlandı: " + e.gamepad.id, "info");
+}
+
+function handleGamepadDisconnected(e) {
+    state.gamepad.connected = false;
+    state.gamepad.index = null;
+    state.gamepad.lastThrottle = -1;
+    state.gamepad.lastSteering = -1000;
+    updateGamepadUI(false);
+    addLog("Oyun kolu bağlantısı koptu", "error");
+}
+
+function gamepadLoop() {
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    const gp = state.gamepad.index !== null ? gamepads[state.gamepad.index] : null;
+
+    if (gp && gp.connected) {
+        const axes = gp.axes;
+
+        if (axes.length >= 2) {
+            let rawLeftY = axes[1];
+            let rawRightX = axes.length >= 4 ? axes[2] : axes[0];
+
+            let throttle = 0;
+            if (rawLeftY < -GAMEPAD_DEADZONE) {
+                throttle = Math.min(1, (-rawLeftY - GAMEPAD_DEADZONE) / (1 - GAMEPAD_DEADZONE));
+            }
+
+            let steering = 0;
+            if (Math.abs(rawRightX) > GAMEPAD_DEADZONE) {
+                const sign = rawRightX > 0 ? 1 : -1;
+                steering = sign * ((Math.abs(rawRightX) - GAMEPAD_DEADZONE) / (1 - GAMEPAD_DEADZONE)) * 90;
+            }
+
+            document.getElementById("throttleSlider").value = throttle;
+            document.getElementById("throttleValue").textContent = throttle.toFixed(2);
+            document.getElementById("steeringSlider").value = steering;
+            document.getElementById("steeringValue").textContent = steering.toFixed(1) + "\u00b0";
+
+            const mode = state.nav ? state.nav.mode : null;
+            if (mode === 0) {
+                if (Math.abs(throttle - state.gamepad.lastThrottle) > 0.01 ||
+                    Math.abs(steering - state.gamepad.lastSteering) > 0.5) {
+                    sendWS({ cmd: "MAN", throttle: throttle, steering: steering });
+                    state.gamepad.lastThrottle = throttle;
+                    state.gamepad.lastSteering = steering;
+                }
+            }
+        }
+    }
+    requestAnimationFrame(gamepadLoop);
+}
+
 // ========== Console ==========
 function addLog(message, type) {
     const log = document.getElementById("consoleLog");
@@ -369,4 +444,9 @@ document.addEventListener("DOMContentLoaded", function () {
     connectWS();
     onManualChange();
     updateWaypointList();
+    if (navigator.getGamepads) {
+        window.addEventListener("gamepadconnected", handleGamepadConnected);
+        window.addEventListener("gamepaddisconnected", handleGamepadDisconnected);
+        gamepadLoop();
+    }
 });

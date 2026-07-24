@@ -370,6 +370,37 @@ main {
     color: var(--text-primary);
 }
 
+/* Gamepad status */
+.gamepad-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 4px 6px;
+    background: var(--bg-card);
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.gamepad-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.gamepad-dot.connected {
+    background: var(--accent-green);
+    box-shadow: 0 0 4px var(--accent-green);
+}
+
+.gamepad-dot.disconnected {
+    background: var(--accent-red);
+    box-shadow: 0 0 4px var(--accent-red);
+}
+
 /* Waypoint controls */
 .waypoint-controls {
     margin-bottom: 4px;
